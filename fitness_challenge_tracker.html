@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FitPulse - Fitness Challenge Tracker</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0b0f19',
+                        cardBg: '#111827',
+                        cardHover: '#1f2937',
+                        neonEmerald: '#10b981',
+                        neonCyan: '#06b6d4',
+                        neonOrange: '#f97316',
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0b0f19; }
+        ::-webkit-scrollbar-thumb { background: #1f2937; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #374151; }
+        .glass-panel { background: rgba(17, 24, 39, 0.75); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); }
+        .glow-emerald { box-shadow: 0 0 25px rgba(16, 185, 129, 0.25); }
+        .glow-cyan { box-shadow: 0 0 25px rgba(6, 182, 212, 0.25); }
+    </style>
+</head>
+<body class="bg-darkBg text-gray-100 min-h-screen flex flex-col selection:bg-neonEmerald selection:text-black">
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-3 pointer-events-none"></div>
+
+    <!-- AUTHENTICATION WRAPPER -->
+    <div id="authWrapper" class="flex-1 flex items-center justify-center p-4 relative overflow-hidden">
+        <!-- Background Glow Orbs -->
+        <div class="absolute -top-40 -left-40 w-96 h-96 bg-neonEmerald/20 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-neonCyan/20 rounded-full blur-3xl pointer-events-none"></div>
+
+        <div class="w-full max-w-md glass-panel p-8 rounded-2xl shadow-2xl relative z-10">
+            <div class="text-center mb-8">
+                <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-neonEmerald to-neonCyan text-black font-bold text-3xl mb-4 glow-emerald">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight text-white">FitPulse Tracker</h1>
+                <p class="text-sm text-gray-400 mt-1">Your ultimate fitness challenge & workout hub</p>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div class="flex rounded-xl bg-gray-900/80 p-1 mb-6 border border-gray-800">
+                <button onclick="switchAuthTab('login')" id="loginTabBtn" class="flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-neonEmerald text-black shadow">Login</button>
+                <button onclick="switchAuthTab('signup')" id="signupTabBtn" class="flex-1 py-2 text-sm font-medium rounded-lg text-gray-400 hover:text-white transition-all">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Email Address</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-regular fa-envelope"></i></span>
+                        <input type="email" id="loginEmail" required class="w-full pl-10 pr-4 py-2.5 bg-gray-900/90 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neonEmerald focus:ring-1 focus:ring-neonEmerald text-sm" placeholder="user@fitness.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="loginPassword" required class="w-full pl-10 pr-4 py-2.5 bg-gray-900/90 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neonEmerald focus:ring-1 focus:ring-neonEmerald text-sm" placeholder="••••••••">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-neonEmerald to-emerald-600 text-black font-semibold rounded-xl hover:opacity-95 transition shadow-lg glow-emerald">Sign In to Dashboard</button>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signupForm" onsubmit="handleSignup(event)" class="space-y-4 hidden">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Full Name</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-regular fa-user"></i></span>
+                        <input type="text" id="signupName" required class="w-full pl-10 pr-4 py-2.5 bg-gray-900/90 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neonEmerald focus:ring-1 focus:ring-neonEmerald text-sm" placeholder="Alex Morgan">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Email Address</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-regular fa-envelope"></i></span>
+                        <input type="email" id="signupEmail" required class="w-full pl-10 pr-4 py-2.5 bg-gray-900/90 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neonEmerald focus:ring-1 focus:ring-neonEmerald text-sm" placeholder="alex@fitness.com">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="signupPassword" required class="w-full pl-10 pr-4 py-2.5 bg-gray-900/90 border border-gray-700 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-neonEmerald focus:ring-1 focus:ring-neonEmerald text-sm" placeholder="••••••••">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Account Role</label>
+                    <select id="signupRole" class="w-full px-3 py-2.5 bg-gray-900/90 border border-gray-700 rounded-xl text-white focus:outline-none focus:border-neonEmerald text-sm">
+                        <option value="user">Participant / User</option>
+                        <option value="admin">Staff / Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full py-3 bg-gradient-to-r from-neonCyan to-cyan-600 text-black font-semibold rounded-xl hover:opacity-95 transition shadow-lg glow-cyan">Create Account</button>
+            </form>
+
+            <!-- Quick Demo Credentials Box -->
+            <div class="mt-8 pt-6 border-t border-gray-800 text-xs">
+                <p class="text-gray-400 font-medium mb-2 text-center">⚡ Instant Demo Logins:</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="fillDemo('user')" class="p-2.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 rounded-lg text-left transition">
+                        <span class="block font-semibold text-neonEmerald">User Account</span>
+                        <span class="text-gray-400 text-[11px]">user@fitness.com</span>
+                    </button>
+                    <button onclick="fillDemo('admin')" class="p-2.5 bg-gray-900 hover:bg-gray-800 border border-gray-800 rounded-lg text-left transition">
+                        <span class="block font-semibold text-neonCyan">Admin Account</span>
+                        <span class="text-gray-400 text-[11px]">admin@fitness.com</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN APP WRAPPER (Hidden by default) -->
+    <div id="appWrapper" class="flex-1 flex hidden">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="w-64 glass-panel border-r border-gray-800 flex flex-col justify-between hidden md:flex z-20">
+            <div>
+                <!-- Brand -->
+                <div class="p-6 flex items-center gap-3 border-b border-gray-800/80">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-neonEmerald to-neonCyan flex items-center justify-center text-black font-bold text-lg glow-emerald">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-white tracking-wide">FitPulse</h2>
+                        <span class="text-xs text-neonEmerald font-medium flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-neonEmerald animate-pulse"></span> Active Online</span>
+                    </div>
+                </div>
+
+                <!-- Nav Links -->
+                <nav class="p-4 space-y-1.5" id="navLinksContainer">
+                    <button onclick="switchTab('dashboard')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-gray-300 hover:bg-gray-800/60 hover:text-white" data-tab="dashboard">
+                        <i class="fa-solid fa-chart-pie w-5 text-neonEmerald"></i> Dashboard
+                    </button>
+                    <button onclick="switchTab('workouts')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-gray-300 hover:bg-gray-800/60 hover:text-white" data-tab="workouts">
+                        <i class="fa-solid fa-dumbbell w-5 text-neonCyan"></i> Workout Logs
+                    </button>
+                    <button onclick="switchTab('challenges')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-gray-300 hover:bg-gray-800/60 hover:text-white" data-tab="challenges">
+                        <i class="fa-solid fa-trophy w-5 text-neonOrange"></i> Challenge Plans
+                    </button>
+                    <button onclick="switchTab('profile')" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-gray-300 hover:bg-gray-800/60 hover:text-white" data-tab="profile">
+                        <i class="fa-solid fa-user-gear w-5 text-purple-400"></i> Profile & Goals
+                    </button>
+                    <button onclick="switchTab('admin')" id="adminNavBtn" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition text-gray-300 hover:bg-gray-800/60 hover:text-white hidden" data-tab="admin">
+                        <i class="fa-solid fa-shield-halved w-5 text-red-400"></i> Staff Admin Panel
+                    </button>
+                </nav>
+            </div>
+
+            <!-- User Mini Badge & Logout -->
+            <div class="p-4 border-t border-gray-800/80">
+                <div class="flex items-center justify-between p-3 bg-gray-900/60 rounded-xl border border-gray-800">
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div id="sidebarUserAvatar" class="w-9 h-9 rounded-full bg-neonEmerald/20 border border-neonEmerald/50 flex items-center justify-center text-neonEmerald font-bold text-sm shrink-0">AM</div>
+                        <div class="truncate">
+                            <p id="sidebarUserName" class="text-sm font-semibold text-white truncate">Alex Morgan</p>
+                            <p id="sidebarUserRole" class="text-[11px] text-gray-400 uppercase tracking-wider">Participant</p>
+                        </div>
+                    </div>
+                    <button onclick="handleLogout()" title="Sign Out" class="p-2 text-gray-400 hover:text-red-400 transition rounded-lg hover:bg-gray-800">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+            <!-- Top Header Navbar for Mobile / Quick Stats -->
+            <header class="glass-panel sticky top-0 z-10 px-6 py-4 flex items-center justify-between border-b border-gray-800">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleMobileSidebar()" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-bars text-xl"></i></button>
+                    <h1 id="pageTitle" class="text-xl font-bold text-white">Dashboard Overview</h1>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="openLogWorkoutModal()" class="px-4 py-2 bg-gradient-to-r from-neonEmerald to-emerald-600 text-black font-semibold rounded-xl text-sm hover:opacity-90 transition shadow flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> <span class="hidden sm:inline">Log Workout</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- TAB 1: DASHBOARD VIEW -->
+            <div id="tab-dashboard" class="p-6 space-y-6 tab-content">
+                <!-- Welcome Banner -->
+                <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-900/40 via-teal-900/30 to-gray-900 p-6 md:p-8 border border-emerald-500/20">
+                    <div class="absolute -right-10 -bottom-10 w-60 h-60 bg-neonEmerald/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="max-w-xl relative z-10">
+                        <span class="px-3 py-1 rounded-full bg-neonEmerald/20 text-neonEmerald text-xs font-semibold uppercase tracking-wider">Welcome Back, Champion</span>
+                        <h2 id="dashboardWelcomeName" class="text-2xl md:text-3xl font-bold text-white mt-2">Ready to crush your goals today?</h2>
+                        <p class="text-gray-300 text-sm mt-1">Consistency is your superpower. Check your active challenge plans or log a new workout to keep your streak alive.</p>
+                        <div class="mt-5 flex flex-wrap gap-3">
+                            <button onclick="switchTab('challenges')" class="px-5 py-2.5 bg-neonEmerald text-black font-semibold rounded-xl text-sm hover:opacity-90 transition shadow">Browse Challenges</button>
+                            <button onclick="switchTab('workouts')" class="px-5 py-2.5 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl text-sm border border-gray-700 transition">View History</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="glass-panel p-5 rounded-2xl border border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Workouts Logged</span>
+                            <div class="w-10 h-10 rounded-xl bg-neonEmerald/10 text-neonEmerald flex items-center justify-center font-bold"><i class="fa-solid fa-dumbbell"></i></div>
+                        </div>
+                        <div class="mt-4 flex items-baseline gap-2">
+                            <h3 id="statTotalWorkouts" class="text-3xl font-extrabold text-white">0</h3>
+                            <span class="text-xs text-neonEmerald font-medium">sessions</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Total recorded activity</p>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl border border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Calories Burned</span>
+                            <div class="w-10 h-10 rounded-xl bg-neonOrange/10 text-neonOrange flex items-center justify-center font-bold"><i class="fa-solid fa-fire"></i></div>
+                        </div>
+                        <div class="mt-4 flex items-baseline gap-2">
+                            <h3 id="statTotalCalories" class="text-3xl font-extrabold text-white">0</h3>
+                            <span class="text-xs text-neonOrange font-medium">kcal</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Goal: <span id="statGoalCalories">500</span> kcal/day</p>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl border border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Active Challenges</span>
+                            <div class="w-10 h-10 rounded-xl bg-neonCyan/10 text-neonCyan flex items-center justify-center font-bold"><i class="fa-solid fa-trophy"></i></div>
+                        </div>
+                        <div class="mt-4 flex items-baseline gap-2">
+                            <h3 id="statActiveChallenges" class="text-3xl font-extrabold text-white">0</h3>
+                            <span class="text-xs text-neonCyan font-medium">joined</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">In progress plans</p>
+                    </div>
+
+                    <div class="glass-panel p-5 rounded-2xl border border-gray-800">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Completion Rate</span>
+                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center font-bold"><i class="fa-solid fa-bullseye"></i></div>
+                        </div>
+                        <div class="mt-4 flex items-baseline gap-2">
+                            <h3 id="statCompletionRate" class="text-3xl font-extrabold text-white">0%</h3>
+                            <span class="text-xs text-purple-400 font-medium">avg progress</span>
+                        </div>
+                        <p class="text-xs text-gray-400 mt-1">Milestones attained</p>
+                    </div>
+                </div>
+
+                <!-- Recent Activities & Active Challenges Feed -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Recent Activities List -->
+                    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl border border-gray-800 flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-white text-lg flex items-center gap-2"><i class="fa-solid fa-clock-rotate-left text-neonEmerald"></i> Recent Activity Feed</h3>
+                            <button onclick="switchTab('workouts')" class="text-xs text-neonEmerald hover:underline font-semibold">View All</button>
+                        </div>
+                        <div id="dashboardRecentWorkouts" class="space-y-3 flex-1">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Joined Challenges Progress Widget -->
+                    <div class="glass-panel p-6 rounded-2xl border border-gray-800 flex flex-col">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="font-bold text-white text-lg flex items-center gap-2"><i class="fa-solid fa-fire-flame-curved text-neonOrange"></i> My Active Plans</h3>
+                            <button onclick="switchTab('challenges')" class="text-xs text-neonOrange hover:underline font-semibold">Browse</button>
+                        </div>
+                        <div id="dashboardActiveChallengesList" class="space-y-4 flex-1">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 2: WORKOUT LOGS VIEW -->
+            <div id="tab-workouts" class="p-6 space-y-6 tab-content hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Workout Activity Logs</h2>
+                        <p class="text-sm text-gray-400">Record, edit, and track your daily fitness sessions and exercises.</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button onclick="openLogWorkoutModal()" class="px-4 py-2.5 bg-neonEmerald text-black font-semibold rounded-xl text-sm hover:opacity-90 transition shadow flex items-center gap-2">
+                            <i class="fa-solid fa-plus"></i> Add New Workout
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search & Filters Bar -->
+                <div class="glass-panel p-4 rounded-2xl border border-gray-800 flex flex-col md:flex-row gap-3">
+                    <div class="relative flex-1">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" id="workoutSearch" oninput="renderWorkoutsTable()" placeholder="Search workouts by type or notes..." class="w-full pl-10 pr-4 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white placeholder-gray-500 text-sm focus:outline-none focus:border-neonEmerald">
+                    </div>
+                    <div class="flex gap-3">
+                        <select id="workoutCategoryFilter" onchange="renderWorkoutsTable()" class="px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonEmerald">
+                            <option value="All">All Categories</option>
+                            <option value="Cardio">Cardio</option>
+                            <option value="Strength">Strength</option>
+                            <option value="Yoga">Yoga / Flexibility</option>
+                            <option value="HIIT">HIIT</option>
+                        </select>
+                        <button onclick="resetWorkoutFilters()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm transition">Reset</button>
+                    </div>
+                </div>
+
+                <!-- Workouts Table / Cards Container -->
+                <div class="glass-panel rounded-2xl border border-gray-800 overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-800 bg-gray-900/60 text-xs uppercase tracking-wider text-gray-400">
+                                    <th class="p-4">Activity Type</th>
+                                    <th class="p-4">Duration</th>
+                                    <th class="p-4">Calories Burned</th>
+                                    <th class="p-4">Date</th>
+                                    <th class="p-4">Notes</th>
+                                    <th class="p-4 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="workoutsTableBody" class="divide-y divide-gray-800/60 text-sm">
+                                <!-- Injected dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 3: CHALLENGES & SCHEDULES VIEW -->
+            <div id="tab-challenges" class="p-6 space-y-6 tab-content hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white">Fitness Challenge Plans</h2>
+                        <p class="text-sm text-gray-400">Join immersive challenge plans, track weekly milestone tasks, and level up.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <select id="challengeCategoryFilter" onchange="renderChallengesList()" class="px-3 py-2 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonCyan">
+                            <option value="All">All Categories</option>
+                            <option value="Cardio">Cardio Blast</option>
+                            <option value="Strength">Strength & Muscle</option>
+                            <option value="Endurance">Endurance & Stamina</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Challenges Grid -->
+                <div id="challengesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Injected dynamically -->
+                </div>
+            </div>
+
+            <!-- TAB 4: PROFILE & GOALS VIEW -->
+            <div id="tab-profile" class="p-6 space-y-6 tab-content hidden">
+                <div>
+                    <h2 class="text-2xl font-bold text-white">Profile & Fitness Goals</h2>
+                    <p class="text-sm text-gray-400">Customize your personal details, avatar, and daily targets securely saved in local storage.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <!-- Profile Form Card -->
+                    <div class="lg:col-span-2 glass-panel p-6 rounded-2xl border border-gray-800">
+                        <h3 class="font-bold text-white text-lg mb-4 flex items-center gap-2"><i class="fa-solid fa-user-pen text-neonEmerald"></i> Edit Personal Information</h3>
+                        <form onsubmit="handleUpdateProfile(event)" class="space-y-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Full Name</label>
+                                    <input type="text" id="profileName" required class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonEmerald">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Email Address</label>
+                                    <input type="email" id="profileEmail" required disabled class="w-full px-4 py-2.5 bg-gray-900/50 border border-gray-800 rounded-xl text-gray-400 text-sm cursor-not-allowed">
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Fitness Level</label>
+                                    <select id="profileFitnessLevel" class="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonEmerald">
+                                        <option value="Beginner">Beginner</option>
+                                        <option value="Intermediate">Intermediate</option>
+                                        <option value="Advanced">Advanced Pro</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Daily Calorie Goal (kcal)</label>
+                                    <input type="number" id="profileCalorieGoal" min="100" max="10000" required class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonEmerald">
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Workout Goal (Sessions/Wk)</label>
+                                    <input type="number" id="profileWorkoutGoal" min="1" max="21" required class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonEmerald">
+                                </div>
+                            </div>
+
+                            <div class="pt-4">
+                                <button type="submit" class="px-6 py-3 bg-neonEmerald text-black font-semibold rounded-xl text-sm hover:opacity-90 transition shadow">Save Profile Changes</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Avatar & Summary Card -->
+                    <div class="glass-panel p-6 rounded-2xl border border-gray-800 flex flex-col items-center justify-center text-center">
+                        <div id="profileAvatarLarge" class="w-24 h-24 rounded-full bg-neonEmerald/20 border-2 border-neonEmerald flex items-center justify-center text-neonEmerald font-bold text-3xl mb-4 glow-emerald">AM</div>
+                        <h3 id="profileCardName" class="font-bold text-white text-lg">Alex Morgan</h3>
+                        <p id="profileCardRole" class="text-xs text-neonCyan font-semibold uppercase tracking-wider mt-1">Participant / User</p>
+                        <div class="w-full mt-6 pt-6 border-t border-gray-800 space-y-2 text-left text-sm">
+                            <div class="flex justify-between text-gray-400">
+                                <span>Member Since:</span>
+                                <span class="text-white font-medium" id="profileMemberDate">Nov 2026</span>
+                            </div>
+                            <div class="flex justify-between text-gray-400">
+                                <span>Account Status:</span>
+                                <span class="text-neonEmerald font-medium">Verified Active</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 5: STAFF / ADMIN PANEL VIEW -->
+            <div id="tab-admin" class="p-6 space-y-6 tab-content hidden">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-2xl font-bold text-white flex items-center gap-2"><i class="fa-solid fa-shield-halved text-red-400"></i> Staff Admin Control Panel</h2>
+                        <p class="text-sm text-gray-400">Manage global platform challenges, review user registrations, and platform metrics.</p>
+                    </div>
+                    <button onclick="openCreateChallengeModal()" class="px-4 py-2.5 bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold rounded-xl text-sm hover:opacity-90 transition shadow flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Create Global Challenge
+                    </button>
+                </div>
+
+                <!-- Admin Analytics Metrics -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="glass-panel p-5 rounded-2xl border border-gray-800">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Total Registered Users</span>
+                        <h3 id="adminTotalUsers" class="text-3xl font-extrabold text-white mt-2">0</h3>
+                        <p class="text-xs text-neonCyan mt-1">Active platform participants</p>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border border-gray-800">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Global Challenges</span>
+                        <h3 id="adminTotalChallenges" class="text-3xl font-extrabold text-white mt-2">0</h3>
+                        <p class="text-xs text-neonOrange mt-1">Available active plans</p>
+                    </div>
+                    <div class="glass-panel p-5 rounded-2xl border border-gray-800">
+                        <span class="text-xs font-semibold uppercase tracking-wider text-gray-400">Total System Workouts</span>
+                        <h3 id="adminTotalWorkouts" class="text-3xl font-extrabold text-white mt-2">0</h3>
+                        <p class="text-xs text-neonEmerald mt-1">Logged community sessions</p>
+                    </div>
+                </div>
+
+                <!-- Registered Users List Table -->
+                <div class="glass-panel p-6 rounded-2xl border border-gray-800 space-y-4">
+                    <h3 class="font-bold text-white text-lg flex items-center gap-2"><i class="fa-solid fa-users text-neonCyan"></i> Registered Platform Participants</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="border-b border-gray-800 bg-gray-900/60 text-xs uppercase tracking-wider text-gray-400">
+                                    <th class="p-4">Name</th>
+                                    <th class="p-4">Email</th>
+                                    <th class="p-4">Role</th>
+                                    <th class="p-4">Fitness Level</th>
+                                    <th class="p-4">Calorie Goal</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminUsersTableBody" class="divide-y divide-gray-800/60 text-sm">
+                                <!-- Injected dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: LOG / EDIT WORKOUT -->
+    <div id="workoutModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="glass-panel w-full max-w-lg p-6 rounded-2xl border border-gray-800 relative shadow-2xl">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-800">
+                <h3 id="workoutModalTitle" class="font-bold text-white text-lg">Log New Workout</h3>
+                <button onclick="closeWorkoutModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="workoutForm" onsubmit="handleSaveWorkout(event)" class="space-y-4">
+                <input type="hidden" id="editWorkoutId">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Activity Type</label>
+                    <select id="workoutType" required class="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonEmerald">
+                        <option value="Running / Jogging">Running / Jogging</option>
+                        <option value="Weightlifting / Strength">Weightlifting / Strength</option>
+                        <option value="Yoga / Stretching">Yoga / Stretching</option>
+                        <option value="HIIT Cardio">HIIT Cardio</option>
+                        <option value="Cycling">Cycling</option>
+                        <option value="Swimming">Swimming</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Duration (Minutes)</label>
+                        <input type="number" id="workoutDuration" min="1" max="1440" required class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonEmerald" placeholder="45">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Calories Burned (kcal)</label>
+                        <input type="number" id="workoutCalories" min="1" max="5000" required class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonEmerald" placeholder="350">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Date</label>
+                    <input type="date" id="workoutDate" required class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonEmerald">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Notes / Achievements</label>
+                    <textarea id="workoutNotes" rows="3" class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonEmerald" placeholder="Felt great, pushed for a new personal record!"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-3 border-t border-gray-800">
+                    <button type="button" onclick="closeWorkoutModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm transition">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-neonEmerald text-black font-semibold rounded-xl text-sm hover:opacity-90 transition">Save Workout</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CREATE GLOBAL CHALLENGE (ADMIN) -->
+    <div id="challengeModal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="glass-panel w-full max-w-lg p-6 rounded-2xl border border-gray-800 relative shadow-2xl">
+            <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-800">
+                <h3 class="font-bold text-white text-lg">Create Global Challenge</h3>
+                <button onclick="closeCreateChallengeModal()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <form id="challengeForm" onsubmit="handleSaveChallenge(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Challenge Title</label>
+                    <input type="text" id="newChallengeTitle" required class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonCyan" placeholder="30-Day Shred Challenge">
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Category</label>
+                        <select id="newChallengeCategory" class="w-full px-3 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonCyan">
+                            <option value="Cardio">Cardio</option>
+                            <option value="Strength">Strength</option>
+                            <option value="Endurance">Endurance</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Duration (Days)</label>
+                        <input type="number" id="newChallengeDuration" min="1" max="365" required class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonCyan" placeholder="30">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Reward / Badge</label>
+                    <input type="text" id="newChallengeReward" required class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonCyan" placeholder="Elite Gold Fitness Medal">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-gray-400 mb-1">Description & Rules</label>
+                    <textarea id="newChallengeDesc" rows="3" required class="w-full px-4 py-2.5 bg-gray-900 border border-gray-700 rounded-xl text-white text-sm focus:outline-none focus:border-neonCyan" placeholder="Complete 30 minutes of daily cardio sessions..."></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-3 border-t border-gray-800">
+                    <button type="button" onclick="closeCreateChallengeModal()" class="px-4 py-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-xl text-sm transition">Cancel</button>
+                    <button type="submit" class="px-5 py-2 bg-gradient-to-r from-neonCyan to-cyan-600 text-black font-semibold rounded-xl text-sm hover:opacity-90 transition">Publish Challenge</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // --- SEED INITIAL DATA & STATE ---
+        const DEFAULT_USERS = [
+            { id: 'u1', name: 'Alex Morgan', email: 'user@fitness.com', password: 'password', role: 'user', fitnessLevel: 'Intermediate', calorieGoal: 600, workoutGoal: 5 },
+            { id: 'u2', name: 'Sarah Admin', email: 'admin@fitness.com', password: 'admin123', role: 'admin', fitnessLevel: 'Advanced Pro', calorieGoal: 800, workoutGoal: 6 }
+        ];
+
+        const DEFAULT_WORKOUTS = [
+            { id: 'w1', userId: 'u1', type: 'Running / Jogging', duration: 45, calories: 420, date: '2026-11-15', notes: 'Morning park run, felt great energy!' },
+            { id: 'w2', userId: 'u1', type: 'Weightlifting / Strength', duration: 60, calories: 350, date: '2026-11-14', notes: 'Upper body hypertrophy session.' },
+            { id: 'w3', userId: 'u1', type: 'Yoga / Stretching', duration: 30, calories: 150, date: '2026-11-13', notes: 'Core stability and hamstring recovery.' }
+        ];
+
+        const DEFAULT_CHALLENGES = [
+            { id: 'c1', title: '30-Day Cardio Blast', category: 'Cardio', duration: 30, reward: 'Cardio Master Badge', description: 'Complete daily cardio sessions to boost stamina, melt fat, and increase lung capacity.' },
+            { id: 'c2', title: 'Core & Strength Builder', category: 'Strength', duration: 21, reward: 'Iron Titan Trophy', description: 'Build unbreakable core stability and functional muscle strength with progressive resistance.' },
+            { id: 'c3', title: 'Endurance Ultra Marathon', category: 'Endurance', duration: 45, reward: 'Elite Ultra Medal', description: 'Push your limits with high-endurance running and cycling milestone challenges.' }
+        ];
+
+        const DEFAULT_USER_CHALLENGES = [
+            { id: 'uc1', userId: 'u1', challengeId: 'c1', status: 'Active', progress: 40, tasks: [ {name: 'Day 1-10: Base Cardio', completed: true}, {name: 'Day 11-20: Interval Sprints', completed: true}, {name: 'Day 21-30: Peak Endurance', completed: false} ] }
+        ];
+
+        // Retrieve or initialize localStorage
+        function getStorage(key, defaultVal) {
+            const data = localStorage.getItem('fitpulse_' + key);
+            return data ? JSON.parse(data) : defaultVal;
+        }
+
+        function setStorage(key, val) {
+            localStorage.setItem('fitpulse_' + key, JSON.stringify(val));
+        }
+
+        let users = getStorage('users', DEFAULT_USERS);
+        let workouts = getStorage('workouts', DEFAULT_WORKOUTS);
+        let challenges = getStorage('challenges', DEFAULT_CHALLENGES);
+        let userChallenges = getStorage('user_challenges', DEFAULT_USER_CHALLENGES);
+        let currentUser = getStorage('current_user', null);
+
+        // --- TOAST NOTIFICATIONS ---
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            const bgColor = type === 'success' ? 'bg-emerald-900/90 border-emerald-500 text-emerald-200' : 'bg-red-900/90 border-red-500 text-red-200';
+            const icon = type === 'success' ? 'fa-circle-check text-neonEmerald' : 'fa-triangle-exclamation text-red-400';
+            
+            toast.className = `glass-panel px-4 py-3 rounded-xl border flex items-center gap-3 shadow-xl pointer-events-auto transform translate-y-2 opacity-0 transition-all duration-300 ${bgColor}`;
+            toast.innerHTML = `<i class="fa-solid ${icon} text-lg"></i><span class="text-sm font-medium">${message}</span>`;
+            
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.remove('translate-y-2', 'opacity-0'), 10);
+            setTimeout(() => {
+                toast.classList.add('translate-y-2', 'opacity-0');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // --- AUTHENTICATION LOGIC ---
+        function switchAuthTab(tab) {
+            const loginTab = document.getElementById('loginTabBtn');
+            const signupTab = document.getElementById('signupTabBtn');
+            const loginForm = document.getElementById('loginForm');
+            const signupForm = document.getElementById('signupForm');
+
+            if (tab === 'login') {
+                loginTab.className = 'flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-neonEmerald text-black shadow';
+                signupTab.className = 'flex-1 py-2 text-sm font-medium rounded-lg text-gray-400 hover:text-white transition-all';
+                loginForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+            } else {
+                signupTab.className = 'flex-1 py-2 text-sm font-medium rounded-lg transition-all bg-neonCyan text-black shadow';
+                loginTab.className = 'flex-1 py-2 text-sm font-medium rounded-lg text-gray-400 hover:text-white transition-all';
+                signupForm.classList.remove('hidden');
+                loginForm.classList.add('hidden');
+            }
+        }
+
+        function fillDemo(type) {
+            if (type === 'user') {
+                document.getElementById('loginEmail').value = 'user@fitness.com';
+                document.getElementById('loginPassword').value = 'password';
+            } else {
+                document.getElementById('loginEmail').value = 'admin@fitness.com';
+                document.getElementById('loginPassword').value = 'admin123';
+            }
+            showToast(`Loaded ${type} demo credentials!`, 'success');
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value.trim();
+
+            const user = users.find(u => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
+            if (!user) {
+                showToast('Invalid email or password. Please try again.', 'error');
+                return;
+            }
+
+            currentUser = user;
+            setStorage('current_user', currentUser);
+            showToast(`Welcome back, ${user.name}!`, 'success');
+            initAppSession();
+        }
+
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signupName').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value.trim();
+            const role = document.getElementById('signupRole').value;
+
+            if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+                showToast('Email is already registered. Please sign in.', 'error');
+                return;
+            }
+
+            const newUser = {
+                id: 'u_' + Date.now(),
+                name,
+                email,
+                password,
+                role,
+                fitnessLevel: 'Beginner',
+                calorieGoal: 500,
+                workoutGoal: 4
+            };
+
+            users.push(newUser);
+            setStorage('users', users);
+            currentUser = newUser;
+            setStorage('current_user', currentUser);
+
+            showToast('Account created successfully!', 'success');
+            initAppSession();
+        }
+
+        function handleLogout() {
+            currentUser = null;
+            localStorage.removeItem('fitpulse_current_user');
+            document.getElementById('appWrapper').classList.add('hidden');
+            document.getElementById('authWrapper').classList.remove('hidden');
+            showToast('Signed out successfully.', 'success');
+        }
+
+        // --- APP INITIALIZATION & ROUTING ---
+        function initAppSession() {
+            if (!currentUser) {
+                document.getElementById('authWrapper').classList.remove('hidden');
+                document.getElementById('appWrapper').classList.add('hidden');
+                return;
+            }
+
+            document.getElementById('authWrapper').classList.add('hidden');
+            document.getElementById('appWrapper').classList.remove('hidden');
+
+            // Update user badge in sidebar
+            const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('sidebarUserAvatar').textContent = initials;
+            document.getElementById('sidebarUserName').textContent = currentUser.name;
+            document.getElementById('sidebarUserRole').textContent = currentUser.role === 'admin' ? 'Staff Admin' : 'Participant';
+
+            // Admin tab visibility
+            const adminNavBtn = document.getElementById('adminNavBtn');
+            if (currentUser.role === 'admin') {
+                adminNavBtn.classList.remove('hidden');
+            } else {
+                adminNavBtn.classList.add('hidden');
+            }
+
+            switchTab('dashboard');
+        }
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('bg-gray-800', 'text-white'));
+
+            const targetTab = document.getElementById(`tab-${tabId}`);
+            if (targetTab) targetTab.classList.remove('hidden');
+
+            const activeNavBtn = document.querySelector(`[data-tab="${tabId}"]`);
+            if (activeNavBtn) activeNavBtn.classList.add('bg-gray-800', 'text-white');
+
+            const titles = {
+                dashboard: 'Dashboard Overview',
+                workouts: 'Workout Activity Logs',
+                challenges: 'Fitness Challenge Plans',
+                profile: 'Profile & Fitness Goals',
+                admin: 'Staff Admin Panel'
+            };
+            document.getElementById('pageTitle').textContent = titles[tabId] || 'FitPulse Tracker';
+
+            // Render specific tab content
+            if (tabId === 'dashboard') renderDashboard();
+            if (tabId === 'workouts') renderWorkoutsTable();
+            if (tabId === 'challenges') renderChallengesList();
+            if (tabId === 'profile') renderProfileData();
+            if (tabId === 'admin') renderAdminPanel();
+        }
+
+        function toggleMobileSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('fixed');
+            sidebar.classList.toggle('inset-y-0');
+            sidebar.classList.toggle('left-0');
+            sidebar.classList.toggle('z-50');
+        }
+
+        // --- DASHBOARD RENDERER ---
+        function renderDashboard() {
+            document.getElementById('dashboardWelcomeName').textContent = `Ready to crush your goals, ${currentUser.name.split(' ')[0]}?`;
+            
+            const userWorkouts = workouts.filter(w => w.userId === currentUser.id);
+            const totalWorkouts = userWorkouts.length;
+            const totalCalories = userWorkouts.reduce((sum, w) => sum + Number(w.calories), 0);
+            
+            const joinedList = userChallenges.filter(uc => uc.userId === currentUser.id);
+            const activeCount = joinedList.length;
+            
+            let avgProgress = 0;
+            if (activeCount > 0) {
+                const sumProg = joinedList.reduce((sum, uc) => sum + uc.progress, 0);
+                avgProgress = Math.round(sumProg / activeCount);
+            }
+
+            document.getElementById('statTotalWorkouts').textContent = totalWorkouts;
+            document.getElementById('statTotalCalories').textContent = totalCalories;
+            document.getElementById('statGoalCalories').textContent = currentUser.calorieGoal || 500;
+            document.getElementById('statActiveChallenges').textContent = activeCount;
+            document.getElementById('statCompletionRate').textContent = avgProgress + '%';
+
+            // Recent workouts list
+            const recentContainer = document.getElementById('dashboardRecentWorkouts');
+            recentContainer.innerHTML = '';
+            const sortedWorkouts = [...userWorkouts].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 4);
+            
+            if (sortedWorkouts.length === 0) {
+                recentContainer.innerHTML = `<p class="text-xs text-gray-500 py-4 text-center">No workouts logged yet. Click 'Log Workout' to start!</p>`;
+            } else {
+                sortedWorkouts.forEach(w => {
+                    recentContainer.innerHTML += `
+                        <div class="flex items-center justify-between p-3.5 bg-gray-900/60 rounded-xl border border-gray-800">
+                            <div class="flex items-center gap-3">
+                                <div class="w-9 h-9 rounded-xl bg-neonEmerald/10 text-neonEmerald flex items-center justify-center font-bold text-sm"><i class="fa-solid fa-dumbbell"></i></div>
+                                <div>
+                                    <h4 class="font-semibold text-white text-sm">${w.type}</h4>
+                                    <p class="text-[11px] text-gray-400">${w.date} • ${w.duration} mins</p>
+                                </div>
+                            </div>
+                            <span class="text-xs font-bold text-neonOrange px-2.5 py-1 rounded-lg bg-neonOrange/10">🔥 ${w.calories} kcal</span>
+                        </div>
+                    `;
+                });
+            }
+
+            // Active challenges list
+            const activeListContainer = document.getElementById('dashboardActiveChallengesList');
+            activeListContainer.innerHTML = '';
+            
+            if (joinedList.length === 0) {
+                activeListContainer.innerHTML = `<p class="text-xs text-gray-500 py-4 text-center">No active challenge plans joined yet. Explore challenges to enroll!</p>`;
+            } else {
+                joinedList.forEach(uc => {
+                    const challenge = challenges.find(c => c.id === uc.challengeId);
+                    if (!challenge) return;
+                    activeListContainer.innerHTML += `
+                        <div class="p-4 bg-gray-900/60 rounded-xl border border-gray-800 space-y-2">
+                            <div class="flex items-center justify-between">
+                                <h4 class="font-semibold text-white text-sm">${challenge.title}</h4>
+                                <span class="text-xs text-cyan-400 font-semibold">${uc.progress}%</span>
+                            </div>
+                            <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                                <div class="bg-gradient-to-r from-neonCyan to-neonEmerald h-full rounded-full transition-all duration-500" style="width: ${uc.progress}%"></div>
+                            </div>
+                            <p class="text-[11px] text-gray-400">Reward: ${challenge.reward}</p>
+                        </div>
+                    `;
+                });
+            }
+        }
+
+        // --- WORKOUT LOGS RENDERER ---
+        function renderWorkoutsTable() {
+            const tbody = document.getElementById('workoutsTableBody');
+            const search = document.getElementById('workoutSearch').value.toLowerCase();
+            const category = document.getElementById('workoutCategoryFilter').value;
+
+            let userWorkouts = workouts.filter(w => w.userId === currentUser.id);
+
+            if (search) {
+                userWorkouts = userWorkouts.filter(w => w.type.toLowerCase().includes(search) || (w.notes && w.notes.toLowerCase().includes(search)));
+            }
+            if (category !== 'All') {
+                userWorkouts = userWorkouts.filter(w => w.type.toLowerCase().includes(category.toLowerCase()));
+            }
+
+            tbody.innerHTML = '';
+            if (userWorkouts.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-gray-500 text-sm">No workout records found.</td></tr>`;
+                return;
+            }
+
+            userWorkouts.forEach(w => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-800/40 transition">
+                        <td class="p-4 font-semibold text-white flex items-center gap-2"><i class="fa-solid fa-bolt text-neonEmerald text-xs"></i> ${w.type}</td>
+                        <td class="p-4 text-gray-300">${w.duration} mins</td>
+                        <td class="p-4 text-neonOrange font-semibold">${w.calories} kcal</td>
+                        <td class="p-4 text-gray-400">${w.date}</td>
+                        <td class="p-4 text-gray-400 max-w-xs truncate">${w.notes || '—'}</td>
+                        <td class="p-4 text-right space-x-2">
+                            <button onclick="editWorkout('${w.id}')" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-cyan-400 rounded-lg text-xs transition"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteWorkout('${w.id}')" class="px-2.5 py-1.5 bg-gray-800 hover:bg-gray-700 text-red-400 rounded-lg text-xs transition"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function resetWorkoutFilters() {
+            document.getElementById('workoutSearch').value = '';
+            document.getElementById('workoutCategoryFilter').value = 'All';
+            renderWorkoutsTable();
+        }
+
+        function openLogWorkoutModal(workoutId = null) {
+            document.getElementById('workoutModal').classList.remove('hidden');
+            document.getElementById('workoutDate').value = new Date().toISOString().split('T')[0];
+            
+            if (workoutId) {
+                const w = workouts.find(item => item.id === workoutId);
+                if (w) {
+                    document.getElementById('workoutModalTitle').textContent = 'Edit Workout Record';
+                    document.getElementById('editWorkoutId').value = w.id;
+                    document.getElementById('workoutType').value = w.type;
+                    document.getElementById('workoutDuration').value = w.duration;
+                    document.getElementById('workoutCalories').value = w.calories;
+                    document.getElementById('workoutDate').value = w.date;
+                    document.getElementById('workoutNotes').value = w.notes;
+                }
+            } else {
+                document.getElementById('workoutModalTitle').textContent = 'Log New Workout';
+                document.getElementById('workoutForm').reset();
+                document.getElementById('editWorkoutId').value = '';
+                document.getElementById('workoutDate').value = new Date().toISOString().split('T')[0];
+            }
+        }
+
+        function closeWorkoutModal() {
+            document.getElementById('workoutModal').classList.add('hidden');
+        }
+
+        function handleSaveWorkout(e) {
+            e.preventDefault();
+            const id = document.getElementById('editWorkoutId').value;
+            const type = document.getElementById('workoutType').value;
+            const duration = Number(document.getElementById('workoutDuration').value);
+            const calories = Number(document.getElementById('workoutCalories').value);
+            const date = document.getElementById('workoutDate').value;
+            const notes = document.getElementById('workoutNotes').value;
+
+            if (id) {
+                const idx = workouts.findIndex(w => w.id === id);
+                if (idx !== -1) {
+                    workouts[idx] = { ...workouts[idx], type, duration, calories, date, notes };
+                    showToast('Workout record updated successfully!', 'success');
+                }
+            } else {
+                const newW = {
+                    id: 'w_' + Date.now(),
+                    userId: currentUser.id,
+                    type,
+                    duration,
+                    calories,
+                    date,
+                    notes
+                };
+                workouts.push(newW);
+                showToast('Workout logged successfully!', 'success');
+            }
+
+            setStorage('workouts', workouts);
+            closeWorkoutModal();
+            renderWorkoutsTable();
+            renderDashboard();
+        }
+
+        function editWorkout(id) {
+            openLogWorkoutModal(id);
+        }
+
+        function deleteWorkout(id) {
+            if (confirm('Are you sure you want to delete this workout record?')) {
+                workouts = workouts.filter(w => w.id !== id);
+                setStorage('workouts', workouts);
+                showToast('Workout deleted.', 'success');
+                renderWorkoutsTable();
+                renderDashboard();
+            }
+        }
+
+        // --- CHALLENGES RENDERER ---
+        function renderChallengesList() {
+            const grid = document.getElementById('challengesGrid');
+            const categoryFilter = document.getElementById('challengeCategoryFilter').value;
+
+            let filtered = challenges;
+            if (categoryFilter !== 'All') {
+                filtered = challenges.filter(c => c.category.toLowerCase() === categoryFilter.toLowerCase());
+            }
+
+            grid.innerHTML = '';
+            if (filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-3 text-center py-10 text-gray-500">No challenges found in this category.</div>`;
+                return;
+            }
+
+            filtered.forEach(c => {
+                const joined = userChallenges.find(uc => uc.userId === currentUser.id && uc.challengeId === c.id);
+                const isJoined = !!joined;
+
+                grid.innerHTML += `
+                    <div class="glass-panel p-6 rounded-2xl border border-gray-800 flex flex-col justify-between space-y-4">
+                        <div>
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="px-3 py-1 rounded-full bg-neonCyan/10 text-neonCyan text-xs font-semibold uppercase tracking-wider">${c.category}</span>
+                                <span class="text-xs text-gray-400 font-medium">⏱️ ${c.duration} Days</span>
+                            </div>
+                            <h3 class="font-bold text-white text-lg">${c.title}</h3>
+                            <p class="text-sm text-gray-300 mt-2">${c.description}</p>
+                            <div class="mt-4 p-3 bg-gray-900/60 rounded-xl border border-gray-800/80 text-xs">
+                                <span class="text-gray-400 font-semibold">Reward:</span> <span class="text-neonOrange font-bold">${c.reward}</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            ${isJoined ? `
+                                <div class="space-y-2">
+                                    <div class="flex justify-between text-xs font-semibold">
+                                        <span class="text-neonEmerald">Enrolled & Active</span>
+                                        <span class="text-white">${joined.progress}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-800 h-2 rounded-full overflow-hidden">
+                                        <div class="bg-neonEmerald h-full rounded-full transition-all duration-500" style="width: ${joined.progress}%"></div>
+                                    </div>
+                                    <div class="pt-2 flex gap-2">
+                                        <button onclick="toggleChallengeTaskModal('${joined.id}')" class="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-white font-semibold rounded-xl text-xs transition">Update Milestones</button>
+                                        <button onclick="leaveChallenge('${joined.id}')" class="px-3 py-2 bg-red-900/30 hover:bg-red-900/50 text-red-400 rounded-xl text-xs transition" title="Leave Challenge"><i class="fa-solid fa-xmark"></i></button>
+                                    </div>
+                                </div>
+                            ` : `
+                                <button onclick="joinChallenge('${c.id}')" class="w-full py-2.5 bg-gradient-to-r from-neonCyan to-cyan-600 text-black font-semibold rounded-xl text-xs hover:opacity-90 transition shadow">Join Challenge Plan</button>
+                            `}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function joinChallenge(challengeId) {
+            const challenge = challenges.find(c => c.id === challengeId);
+            const defaultTasks = [
+                { name: `Week 1: Foundations & Habit Building`, completed: false },
+                { name: `Week 2: Intensity & Consistency`, completed: false },
+                { name: `Week 3: Peak Performance Test`, completed: false }
+            ];
+
+            const newUC = {
+                id: 'uc_' + Date.now(),
+                userId: currentUser.id,
+                challengeId: challengeId,
+                status: 'Active',
+                progress: 0,
+                tasks: defaultTasks
+            };
+
+            userChallenges.push(newUC);
+            setStorage('user_challenges', userChallenges);
+            showToast(`Successfully joined "${challenge.title}"!`, 'success');
+            renderChallengesList();
+            renderDashboard();
+        }
+
+        function leaveChallenge(userChallengeId) {
+            if (confirm('Are you sure you want to leave this challenge?')) {
+                userChallenges = userChallenges.filter(uc => uc.id !== userChallengeId);
+                setStorage('user_challenges', userChallenges);
+                showToast('Challenge removed from active plans.', 'success');
+                renderChallengesList();
+                renderDashboard();
+            }
+        }
+
+        function toggleChallengeTaskModal(userChallengeId) {
+            const uc = userChallenges.find(item => item.id === userChallengeId);
+            if (!uc) return;
+
+            const challenge = challenges.find(c => c.id === uc.challengeId);
+            
+            let taskHtml = uc.tasks.map((t, idx) => `
+                <label class="flex items-center gap-3 p-3 bg-gray-900/60 rounded-xl border border-gray-800 cursor-pointer hover:bg-gray-800/50 transition">
+                    <input type="checkbox" ${t.completed ? 'checked' : ''} onchange="updateChallengeTask('${uc.id}', ${idx})" class="w-4 h-4 accent-neonEmerald rounded">
+                    <span class="text-sm text-white ${t.completed ? 'line-through text-gray-500' : ''}">${t.name}</span>
+                </label>
+            `).join('');
+
+            // Prompt modal simulation using alert/custom modal or simple inline prompt (we'll render an interactive prompt overlay)
+            const modalOverlay = document.createElement('div');
+            modalOverlay.id = 'taskModalOverlay';
+            modalOverlay.className = 'fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4';
+            modalOverlay.innerHTML = `
+                <div class="glass-panel w-full max-w-md p-6 rounded-2xl border border-gray-800 space-y-4">
+                    <div class="flex items-center justify-between pb-3 border-b border-gray-800">
+                        <h3 class="font-bold text-white text-lg">Milestones: ${challenge.title}</h3>
+                        <button onclick="document.getElementById('taskModalOverlay').remove()" class="text-gray-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    <div class="space-y-2">${taskHtml}</div>
+                    <button onclick="document.getElementById('taskModalOverlay').remove(); renderChallengesList(); renderDashboard();" class="w-full py-2.5 bg-neonEmerald text-black font-semibold rounded-xl text-sm mt-4">Done & Save Progress</button>
+                </div>
+            `;
+            document.body.appendChild(modalOverlay);
+        }
+
+        function updateChallengeTask(userChallengeId, taskIndex) {
+            const uc = userChallenges.find(item => item.id === userChallengeId);
+            if (!uc) return;
+
+            uc.tasks[taskIndex].completed = !uc.tasks[taskIndex].completed;
+            
+            // Recalculate progress percentage
+            const completedCount = uc.tasks.filter(t => t.completed).length;
+            uc.progress = Math.round((completedCount / uc.tasks.length) * 100);
+            if (uc.progress === 100) uc.status = 'Completed';
+
+            setStorage('user_challenges', userChallenges);
+        }
+
+        // --- PROFILE RENDERER ---
+        function renderProfileData() {
+            document.getElementById('profileName').value = currentUser.name;
+            document.getElementById('profileEmail').value = currentUser.email;
+            document.getElementById('profileFitnessLevel').value = currentUser.fitnessLevel || 'Beginner';
+            document.getElementById('profileCalorieGoal').value = currentUser.calorieGoal || 500;
+            document.getElementById('profileWorkoutGoal').value = currentUser.workoutGoal || 4;
+
+            const initials = currentUser.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+            document.getElementById('profileAvatarLarge').textContent = initials;
+            document.getElementById('profileCardName').textContent = currentUser.name;
+            document.getElementById('profileCardRole').textContent = currentUser.role === 'admin' ? 'Staff Admin Panel' : 'Participant / User';
+        }
+
+        function handleUpdateProfile(e) {
+            e.preventDefault();
+            const name = document.getElementById('profileName').value.trim();
+            const fitnessLevel = document.getElementById('profileFitnessLevel').value;
+            const calorieGoal = Number(document.getElementById('profileCalorieGoal').value);
+            const workoutGoal = Number(document.getElementById('profileWorkoutGoal').value);
+
+            currentUser.name = name;
+            currentUser.fitnessLevel = fitnessLevel;
+            currentUser.calorieGoal = calorieGoal;
+            currentUser.workoutGoal = workoutGoal;
+
+            // Update in users array
+            const idx = users.findIndex(u => u.id === currentUser.id);
+            if (idx !== -1) users[idx] = currentUser;
+
+            setStorage('users', users);
+            setStorage('current_user', currentUser);
+
+            showToast('Profile updated successfully!', 'success');
+            initAppSession();
+        }
+
+        // --- ADMIN PANEL RENDERER ---
+        function renderAdminPanel() {
+            if (currentUser.role !== 'admin') return;
+
+            document.getElementById('adminTotalUsers').textContent = users.length;
+            document.getElementById('adminTotalChallenges').textContent = challenges.length;
+            document.getElementById('adminTotalWorkouts').textContent = workouts.length;
+
+            const tbody = document.getElementById('adminUsersTableBody');
+            tbody.innerHTML = '';
+
+            users.forEach(u => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-800/40 transition">
+                        <td class="p-4 font-semibold text-white">${u.name}</td>
+                        <td class="p-4 text-gray-300">${u.email}</td>
+                        <td class="p-4"><span class="px-2.5 py-1 rounded-full text-xs font-semibold ${u.role === 'admin' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 'bg-neonCyan/10 text-neonCyan border border-neonCyan/20'}">${u.role.toUpperCase()}</span></td>
+                        <td class="p-4 text-gray-400">${u.fitnessLevel || 'Beginner'}</td>
+                        <td class="p-4 text-neonOrange font-semibold">${u.calorieGoal || 500} kcal</td>
+                    </tr>
+                `;
+            });
+        }
+
+        function openCreateChallengeModal() {
+            document.getElementById('challengeModal').classList.remove('hidden');
+            document.getElementById('challengeForm').reset();
+        }
+
+        function closeCreateChallengeModal() {
+            document.getElementById('challengeModal').classList.add('hidden');
+        }
+
+        function handleSaveChallenge(e) {
+            e.preventDefault();
+            const title = document.getElementById('newChallengeTitle').value.trim();
+            const category = document.getElementById('newChallengeCategory').value;
+            const duration = Number(document.getElementById('newChallengeDuration').value);
+            const reward = document.getElementById('newChallengeReward').value.trim();
+            const description = document.getElementById('newChallengeDesc').value.trim();
+
+            const newC = {
+                id: 'c_' + Date.now(),
+                title,
+                category,
+                duration,
+                reward,
+                description,
+                createdBy: currentUser.name
+            };
+
+            challenges.push(newC);
+            setStorage('challenges', challenges);
+            closeCreateChallengeModal();
+            showToast('Global challenge published successfully!', 'success');
+            renderAdminPanel();
+        }
+
+        // --- ONLOAD INIT ---
+        window.onload = function () {
+            initAppSession();
+        };
+    </script>
+</body>
+</html>
